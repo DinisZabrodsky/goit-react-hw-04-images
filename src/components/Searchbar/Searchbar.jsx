@@ -1,38 +1,33 @@
-import { Component } from 'react'
+import { useState } from 'react'
 
 import SearchCSS from './Searchbar.module.css'
 
-export class Searchbar extends Component {
-    state = {
-        inputValue: "",
-        prevInputValue: "запит",
+export function Searchbar ({search}) {
+    const [input, setInput] = useState({inputValue: "", prevInputValue: "запит"})
+
+    const inputChange = ({target: {value}}) => {
+        setInput((prev) => {return{...prev, inputValue: value.toLowerCase()}})
     }
 
-    inputChange = ({target: {value}}) => {
-        this.setState({inputValue: value.toLowerCase() })
-    }
-
-    searchSubmit = (e) => {
+    const searchSubmit = (e) => {
         e.preventDefault()
-        const value = this.state.inputValue.trim()
+        const value = input.inputValue.trim()
         if(!value) {
             alert("Ввадіть запит")
             return
         }
 
-        if(this.state.prevInputValue === this.state.inputValue){
+        if(input.prevInputValue === input.inputValue){
           alert(`Ви ввели запит "${this.state.prevInputValue}" повторно`)
           return
         }
 
-        this.setState({prevInputValue: value})
-        this.props.search(this.state.inputValue)
-
+        setInput((prev) => {return{...prev, prevInputValue: value}})
+        search(input.inputValue)
     }
 
-    render() {
     return <header className={SearchCSS.Searchbar}>
-    <form className={SearchCSS.SearchForm} onSubmit={this.searchSubmit}>
+    <form className={SearchCSS.SearchForm} onSubmit={searchSubmit}>
       <button type="submit" className={SearchCSS.SearchFormButton}>
         <span className={SearchCSS.SearchFormButtonLabel}>Search</span>
       </button>
@@ -42,12 +37,11 @@ export class Searchbar extends Component {
         type="text"
         autoComplete="off"
         autoFocus
-        onChange={this.inputChange}
-        value={this.state.inputValue}
+        onChange={inputChange}
+        value={input.inputValue}
         placeholder="Search images and photos"
       />
     </form>
-  </header>}
+  </header>
   
-
 }

@@ -1,4 +1,4 @@
-import { Component } from 'react';
+import { useEffect, useState } from 'react';
 
 import {getImage} from '../api/getImage'
 import {Searchbar} from "./Searchbar/Searchbar";
@@ -7,92 +7,93 @@ import { Modal } from "./Modal/Modal";
 
 
 
-export class App extends Component {
-  state = {
+export function App () {
+  const [search, setSearch] = useState({
     search: "",
-    page: 1,
+    page: 1
+  })
 
+
+  const [imageBase, setImageBase] = useState({
     imageBase: [],
     total: 0,
-    new: true,
-    load: false,
-    error: false,
 
+  })
+
+  const [dataModal, setDataModal] = useState({
     modal: false,
     imageModal: "",
     tagModal: "",
-  }
-
-  componentDidUpdate = (prevProps, prevState) => {
+  })
 
 
-        if (prevState.search !== this.state.search || prevState.page !== this.state.page) {
-            this.setState({load: true})
+  const [load, setLoad] = useState(false)
 
-            getImage({query: this.state.search, page: this.state.page})
-            .then(response =>{
+  useEffect(()=>{
+    if(search.search !== "") {
+      setLoad(true)
+      getImage({query: search.search, page: search.page})
+              .then(response =>{
+  
+                  if(response.total === 0) {
+                      alert(`Нажаль за запитом "${search.search}" нічого не знайдено`)
+                  } else if (search.page === 1) {
+                    setImageBase({
+                      total: response.total,
+                      imageBase: response.hits,
+                    })     
+                  } else if (search.page !== 1) {
+                    setImageBase((prev) => {
+                      return{
+                      ...prev,
+                      imageBase: [...prev.imageBase, ...response.hits]
+                      }
+                    })
+                  }
+              })
+              .catch(console.log)
+              .finally(()=>{
+                return setTimeout(() => {
+                    setLoad(false)
+                  }, 250);   
+              })
+    }},[search])
 
-                if(response.total === 0) {
-                    alert(`Нажаль за запитом "${this.state.search}" нічого не знайдено`)
-                }
+  const openModal = (imageModal, tagModal) => {
+    setDataModal({
+      modal: true,
+      imageModal,
+      tagModal
+    })} 
 
-                if (prevState.search !== this.state.search) {
-                    return this.setState({
-                        total: response.total,
-                        imageBase: response.hits,
-                        new: true,
-                        
-                    }) 
-                }
-
-                if(prevState.page !== this.state.page && !this.state.new) {
-                    return this.setState({imageBase: [...prevState.imageBase, ...response.hits]})
-                }
-
-                
-            }).catch(() => this.setState({error: true}))
-                .finally(()=>{
-                    return setTimeout(() => {
-                            this.setState({load: false})
-                        }, 250);
-                    
-                })
-                 
-        }  
-}   
-
-  openModal = (imageModal, tagModal) => {
-    this.setState({modal: true, imageModal, tagModal})
-  } 
-
-  closeModal = () => {
-    this.setState({modal: false})
+  const closeModal = () => {
+    setDataModal({modal: false})
   }
   
-  searchQuery = (value) => {
-    this.setState({
+  const searchQuery = (value) => {
+    setSearch((prev)=>{return{
+      ...prev,
       search: value,
       page: 1,
-    })
+    }})
   }
 
-  addMore = () => {
-    this.setState( prev =>{return {
-        page: prev.page + 1,
-        new: false
-        }})
+  const addMore = () => {
+    setSearch((prev) => {return{
+      ...prev,
+      page: prev.page + 1
+    }})
   }
 
-
-  render(){  
+  
     return <>
-      {this.state.modal && <Modal imageModal={this.state.imageModal} tagModal={this.state.tagModal} closeModal={this.closeModal}/>}
+      {dataModal.modal && <Modal imageModal={dataModal.imageModal} tagModal={dataModal.tagModal} closeModal={closeModal}/>}
 
-      <Searchbar search={this.searchQuery}/>
-      <ImageGallery addMore={this.addMore} openModal={this.openModal} imageBase={this.state.imageBase} total={this.state.total} load={this.state.load}/>
-      {this.state.search === "" && <h2 style={{alignItems: 'center', textAlign: 'center'}}>Ведіть будьласка запит</h2>}
+      <Searchbar search={searchQuery}/>
+      <ImageGallery addMore={addMore} openModal={openModal} imageBase={imageBase.imageBase} total={imageBase.total} load={load}/>
+      {search.search === "" && <h2 style={{alignItems: 'center', textAlign: 'center'}}>Ведіть будьласка запит</h2>}
 
-      </>}
+      </>
 
 };
 

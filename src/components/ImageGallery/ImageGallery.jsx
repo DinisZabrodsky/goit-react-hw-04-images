@@ -1,5 +1,3 @@
-import { Component } from 'react'
-
 import {ImageGalleryItem} from '../ImageGalleryItem/ImageGalleryItem'
 import {Button} from '../Button/Button'
 import {Loader} from '../Loader/Loader'
@@ -7,28 +5,24 @@ import PropTypes from 'prop-types';
 
 import IGCss from './ImageGallery.module.css'
 
-export class ImageGallery extends Component {
-    state = {}
+export function ImageGallery ({addMore, openModal, imageBase, total, load}) {
 
-    render() {
-
-        return <>
+    return <>
                 
                 <ul className={IGCss.ImageGallery}>
-                    {this.props.imageBase.map(({id, webformatURL, tags, largeImageURL}) => {
-                        return <ImageGalleryItem key={id} webformatURL={webformatURL} tags={tags} imageForModal={largeImageURL} openModal={this.props.openModal}/>
+                    {imageBase.map(({id, webformatURL, tags, largeImageURL}) => {
+                        return <ImageGalleryItem key={id} webformatURL={webformatURL} tags={tags} imageForModal={largeImageURL} openModal={openModal}/>
                     })}
                 </ul>
 
-                { this.props.load && <Loader />}
+                {load && <Loader />}
 
-                { this.props.imageBase.length > 0 && this.props.imageBase.length < this.props.total && <Button addMore={this.props.addMore}/>} 
+                { imageBase.length > 0 && imageBase.length < total && <Button addMore={addMore}/>} 
                 
              
-      </>}
+    </>
 }
 
 ImageGallery.propTypes = {
-    search: PropTypes.string.isRequired,
     openModal:PropTypes.func.isRequired,
 }
